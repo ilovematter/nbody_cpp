@@ -53,8 +53,7 @@ void verlet_step(std::vector<Body>& system, const double& dt)
     }
 }
 
-void integrate(std::vector<Body>& system, double t, double dt, double save_dt,
-    char* output_file_path)
+void integrate(initial_state& state, char* output_file_path)
 {
     double t_current = 0;
     double t_save_current = 0;
@@ -63,22 +62,22 @@ void integrate(std::vector<Body>& system, double t, double dt, double save_dt,
     output_file << std::scientific;
     int i = 0;
 
-    while (t_current < t)
+    while (t_current < state.t)
     {
-        verlet_step(system, dt);
+        verlet_step(state.system, state.dt);
 
-        if (t_save_current >= save_dt)
+        if (t_save_current >= state.save_interval)
         {
             // save to file with format time \t id \t mass \t rx \t ry \t rz
-            for (std::vector<Body>::const_iterator it = std::begin(system);
-                it != std::end(system); it++, i++)
+            for (std::vector<Body>::const_iterator it = std::begin(state.system);
+                it != std::end(state.system); it++, i++)
             {
                 output_file << t_current << "\t"
                     << i + 1 << "\t"
-                    << system[i].m << "\t"
-                    << boost::qvm::A<0>(system[i].r) << "\t"
-                    << boost::qvm::A<1>(system[i].r) << "\t"
-                    << boost::qvm::A<2>(system[i].r) << "\n";
+                    << state.system[i].m << "\t"
+                    << boost::qvm::A<0>(state.system[i].r) << "\t"
+                    << boost::qvm::A<1>(state.system[i].r) << "\t"
+                    << boost::qvm::A<2>(state.system[i].r) << "\n";
             }
 
             i = 0;
@@ -86,10 +85,10 @@ void integrate(std::vector<Body>& system, double t, double dt, double save_dt,
         }
         else
         {
-            t_save_current += dt;
+            t_save_current += state.dt;
         }
 
-        t_current += dt;
+        t_current += state.dt;
     }
 }
 
@@ -100,8 +99,7 @@ int main(int argc, char* argv[])
         char* input_file_path = argv[1];
         char* output_file_path = argv[2];
         initial_state input_state = load_input_data(input_file_path);
-        integrate(input_state.system, input_state.t, input_state.dt,
-            input_state.save_interval, output_file_path);
+        integrate(input_state, output_file_path);
     }
     else
     {
